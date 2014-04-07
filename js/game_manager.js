@@ -8,10 +8,19 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
+  this.inputManager.on("saveRecord", this.saveRecord.bind(this));  
+  this.inputManager.on("restoreRecord", this.restoreRecord.bind(this));  
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
   this.setup();
 }
+
+// Restore the game record
+GameManager.prototype.restoreRecord = function () {
+  this.storageManager.clearGameState();
+  this.actuator.continueGame(); // Clear the game won/lost message
+  this.setup(true);
+};
 
 // Restart the game
 GameManager.prototype.restart = function () {
@@ -36,8 +45,12 @@ GameManager.prototype.isGameTerminated = function () {
 };
 
 // Set up the game
-GameManager.prototype.setup = function () {
+GameManager.prototype.setup = function (restoreRecord) {
   var previousState = this.storageManager.getGameState();
+  
+  if(restoreRecord) {
+    previousState = this.storageManager.getRecordState();
+  }
 
   // Reload the game from a previous game if present
   if (previousState) {
@@ -78,6 +91,11 @@ GameManager.prototype.addRandomTile = function () {
     this.grid.insertTile(tile);
   }
 };
+
+GameManager.prototype.saveRecord = function () {
+    this.storageManager.addRecordState(this.serialize());
+	alert("Saved. Click Load when you want to back here!");
+}
 
 // Sends the updated grid to the actuator
 GameManager.prototype.actuate = function () {
